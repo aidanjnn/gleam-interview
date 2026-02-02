@@ -1,0 +1,62 @@
+.container {
+    min-height: 100vh;
+    padding: 60px 20px 40px;
+    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.title {
+    font-size: 36px;
+    font-weight: 600;
+    color: white;
+    margin: 0 0 8px;
+    letter-spacing: -0.5px;
+}
+
+.subtitle {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0;
+}
+
+.searchContainer {
+    max-width: 500px;
+    margin: 0 auto 24px;
+}
+
+.cityList {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.footer {
+    padding: 40px 0 20px;
+    text-align: center;
+}
+
+.footerText {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.4);
+    margin: 0;
+}
+
+@media (max-width: 640px) {
+    .container {
+        padding: 48px 16px 32px;
+    }
+
+    .title {
+        font-size: 32px;
+    }
+
+    .cityList {
+        gap: 12px;
+    }
+}

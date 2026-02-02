@@ -1,0 +1,73 @@
+.container {
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.container:last-child {
+    border-bottom: none;
+}
+
+.day {
+    flex-shrink: 0;
+    width: 60px;
+    font-size: 16px;
+    font-weight: 500;
+    color: white;
+}
+
+.iconWrapper {
+    flex-shrink: 0;
+    width: 40px;
+    display: flex;
+    justify-content: center;
+}
+
+.icon {
+    color: white;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15));
+    opacity: 0.95;
+}
+
+.tempRange {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 8px;
+}
+
+.lowTemp {
+    flex-shrink: 0;
+    width: 36px;
+    font-size: 16px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.6);
+    text-align: right;
+}
+
+.highTemp {
+    flex-shrink: 0;
+    width: 36px;
+    font-size: 16px;
+    font-weight: 500;
+    color: white;
+    text-align: left;
+}
+
+.barContainer {
+    flex: 1;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    position: relative;
+    min-width: 60px;
+}
+
+.bar {
+    position: absolute;
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #64D2FF 0%, #FFD60A 50%, #FF9F0A 100%);
+}

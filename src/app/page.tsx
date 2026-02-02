@@ -1,66 +1,122 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client';
+
+import { useState, useMemo } from 'react';
+import { useWeatherData } from '@/hooks/useWeatherData';
+import { getWeatherGradient } from '@/utils/weatherUtils';
+import { CityWeather } from '@/types/weather';
+import LandingPage from '@/components/LandingPage/LandingPage';
+import BackButton from '@/components/BackButton/BackButton';
+import CurrentWeather from '@/components/CurrentWeather/CurrentWeather';
+import HourlyForecast from '@/components/HourlyForecast/HourlyForecast';
+import WeeklyForecast from '@/components/WeeklyForecast/WeeklyForecast';
+import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
+import ErrorState from '@/components/ErrorState/ErrorState';
+import styles from './page.module.css';
+
+interface SearchResult {
+  id: string;
+  name: string;
+  region: string;
+  country: string;
+  lat: number;
+  lon: number;
+}
 
 export default function Home() {
+  const [selectedCityId, setSelectedCityId] = useState<string | null>(null);
+  const [searchedCityWeather, setSearchedCityWeather] = useState<CityWeather | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const { weatherData, isLoading, error, refetch } = useWeatherData();
+
+  const currentCityWeather = useMemo(() => {
+    // If we have searched city weather, use that
+    if (searchedCityWeather && selectedCityId === searchedCityWeather.city.id) {
+      return searchedCityWeather;
+    }
+    // Otherwise find in weather data
+    return weatherData.find((data) => data.city.id === selectedCityId);
+  }, [selectedCityId, weatherData, searchedCityWeather]);
+
+  // Get weather-based background gradient for detail view
+  const backgroundGradient = useMemo(() => {
+    if (!currentCityWeather) return '';
+    const condition = currentCityWeather.hourly[0]?.condition || 'sunny';
+    return getWeatherGradient(condition);
+  }, [currentCityWeather]);
+
+  const handleCitySelect = (cityId: string) => {
+    setSearchedCityWeather(null);
+    setSelectedCityId(cityId);
+  };
+
+  const handleSearchSelect = async (city: SearchResult) => {
+    setIsSearching(true);
+    try {
+      const params = new URLSearchParams({
+        lat: city.lat.toString(),
+        lon: city.lon.toString(),
+        name: city.name,
+        country: city.country,
+      });
+
+      const response = await fetch(`/api/weather/search?${params}`);
+      if (response.ok) {
+        const weather = await response.json();
+        setSearchedCityWeather(weather);
+        setSelectedCityId(weather.city.id);
+      }
+    } catch (error) {
+      console.error('Error fetching searched city weather:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleBackToLanding = () => {
+    setSelectedCityId(null);
+    setSearchedCityWeather(null);
+  };
+
+  // Show loading state
+  if (isLoading || isSearching) {
+    return <LoadingSpinner message={isSearching ? 'Fetching city weather...' : 'Fetching weather data...'} />;
+  }
+
+  // Show error state
+  if (error) {
+    return <ErrorState message={error} onRetry={refetch} />;
+  }
+
+  // Show landing page if no city is selected
+  if (!selectedCityId || !currentCityWeather) {
+    return (
+      <LandingPage
+        cities={weatherData}
+        onCitySelect={handleCitySelect}
+        onSearchSelect={handleSearchSelect}
+      />
+    );
+  }
+
+  // Show weather detail view for selected city
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <main className={styles.main} style={{ background: backgroundGradient }}>
+      <div className={styles.container}>
+        <BackButton onClick={handleBackToLanding} />
+
+        <CurrentWeather
+          cityName={currentCityWeather.city.name}
+          weather={currentCityWeather.current}
         />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+
+        <HourlyForecast hourlyData={currentCityWeather.hourly} />
+
+        <WeeklyForecast dailyData={currentCityWeather.daily} />
+
+        <div className={styles.footer}>
+          <p className={styles.footerText}>Real-time weather data from WeatherAPI.com</p>
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
